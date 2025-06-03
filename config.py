@@ -1,7 +1,7 @@
 # config.py
 
 import os
-import torch
+import torch # 导入 torch 以便在 DEVICE 中使用 cuda.is_available()
 
 # --- 路径配置 ---
 # 获取当前脚本所在目录的父目录，作为项目根目录
@@ -31,7 +31,13 @@ BEST_MODEL_PATH = os.path.join(SAVE_DIR, "best_yolov8m_model.pth")
 
 # --- 模型超参数 ---
 IMG_SIZE = (640, 640) # 输入图像尺寸 (宽度, 高度)
-NUM_CLASSES = 2     # 数据集类别数 (例如 COCO 有 80 个类别)
+
+# 定义类别名称列表，并根据其长度设置 NUM_CLASSES
+CLASS_NAMES = [
+    "bike", "people"
+]
+NUM_CLASSES = len(CLASS_NAMES) # 根据 CLASS_NAMES 自动设置类别数
+
 MODEL_NAME = "yolov8m" # 模型名称 (例如 yolov8n, yolov8s, yolov8m 等)
 
 # --- 训练超参数 ---
