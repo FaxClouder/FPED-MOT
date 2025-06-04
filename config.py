@@ -41,8 +41,8 @@ NUM_CLASSES = len(CLASS_NAMES) # 根据 CLASS_NAMES 自动设置类别数
 MODEL_NAME = "yolov8m" # 模型名称 (例如 yolov8n, yolov8s, yolov8m 等)
 
 # --- 训练超参数 ---
-BATCH_SIZE = 4       # 训练批次大小
-EPOCHS = 5           # 训练的总 epoch 数 (示例用，实际训练需要更多)
+BATCH_SIZE = 16      # 训练批次大小
+EPOCHS = 500          # 训练的总 epoch 数 (示例用，实际训练需要更多)
 LEARNING_RATE = 0.001 # 初始学习率
 WEIGHT_DECAY = 0.0005 # 优化器的权重衰减
 MOMENTUM = 0.937      # SGD优化器的动量 (如果使用AdamW，此参数可能不适用)

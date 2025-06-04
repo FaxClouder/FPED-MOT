@@ -125,33 +125,35 @@ def train(model, train_dataloader, val_dataloader, optimizer, loss_fn, scheduler
 # --- 验证函数 ---
 def validate(model, dataloader, device):
     """
-    在验证集上评估模型性能。
+    在验证集上评估模型性能，输出COCO风格mAP。
     """
-    model.eval()  # 设置模型为评估模式
-    all_decoded_preds = []  # 存储所有图像的解码预测结果
-    all_ground_truths = []  # 存储所有图像的真实标注
+    model.eval()
+    all_decoded_preds = []     # 每图预测：[x1, y1, x2, y2, conf, cls_id]
+    all_ground_truths = []     # 每图GT：[cls_id, x_c, y_c, w, h]
 
-    with torch.no_grad():  # 评估时不需要计算梯度
+    with torch.no_grad():
         progress_bar = tqdm(dataloader, desc="Validating")
         for images, targets in progress_bar:
             images = images.to(device)
-
             predictions = model(images)
 
-            # 解码预测 (不应用NMS，NMS在mAP计算内部或之后应用)
-            # decode_predictions 返回的是一个列表，每个元素是 (num_detections, 6) 的张量
+            # decode_predictions返回：List[Tensor(num_boxes, 6)]
             decoded_preds_batch = decode_predictions(predictions, img_size=IMG_SIZE, conf_threshold=CONF_THRESHOLD)
 
-            # 将每个图像的预测和真实标注添加到列表中
-            # targets 是 (total_num_objects_in_batch, 6)
-            # 需要将其按批次索引拆分回列表
+            # 将targets按batch拆分
             for b_idx in range(images.shape[0]):
-                all_decoded_preds.append(decoded_preds_batch[b_idx])
-                # 提取当前图像的真实标注
-                current_gt = targets[targets[:, 0] == b_idx][:, 1:]  # 移除batch_idx列
-                all_ground_truths.append(current_gt)
+                preds = decoded_preds_batch[b_idx].cpu()
+                gts = targets[targets[:, 0] == b_idx][:, 1:].cpu()  # [cls, x, y, w, h]
+                all_decoded_preds.append(preds)
+                all_ground_truths.append(gts)
 
+    # 使用 pycocotools 计算 mAP
+    metrics = calculate_map(all_decoded_preds, all_ground_truths, num_classes=NUM_CLASSES)
+
+    print(f"  Validation mAP@0.5: {metrics['mAP@0.5']:.4f}")
+    print(f"  Validation mAP@0.5:0.95: {metrics['mAP@0.5:0.95']:.4f}")
     return all_decoded_preds, all_ground_truths
+
 
 
 # --- 推理函数 (示例) ---
